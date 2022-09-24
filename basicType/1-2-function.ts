@@ -32,6 +32,11 @@
   // JavaScript ✨ => TypeScript
   // Optional parameter
   function printName(firstName: string, lastName?: string) {
+    /**
+     * lastName?: string 랑 lastName: string | undefined 랑 같은거 아닌가요? NO!!
+     * lastName?: string 이면 printName('Ellie'); 이런식으로 lastName을 적어주지 않아도 괜찮은데,
+     * lastName: string | undefined은 printName('Ellie', undefined); 반드시 이런 식으로 적어주어야 한다.
+     */
     console.log(firstName);
     console.log(lastName); // undefined
   }

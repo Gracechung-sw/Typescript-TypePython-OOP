@@ -12,6 +12,13 @@
   const dayOfToday = DAYS_ENUM.MONDAY;
 
   // TypeScript
+  /**
+   * TS에서 enum은 가능한 사용하지 않는게 좋다. 왜?
+   * let day: Days = Days.Saturday;
+      day = Days.Tuesday;
+      day = 10;
+   * 이런 식으로 enum으로 선언된 변수에 어떤 값도 들어갈 수 있다는게 문제이다 
+   */
   type DaysOfWeek = 'Monday' | 'Tuesday' | 'Wednesday';
   enum Days {
     Monday,
