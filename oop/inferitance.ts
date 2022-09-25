@@ -63,6 +63,15 @@
   }
 
   class CaffeLatteeMachine extends CoffeeMachine {
+    constructor(
+      coffeeBeansGramm: number,
+      public readonly serialNumber: string
+    ) {
+      // Constructors for derived classes must contain a 'super' call.ts(2377)
+      // 즉 자식 class에 constructor를 재정의 해주려면 부모 class의 생성자를 호출해줘야 한다 (super())
+
+      super(coffeeBeansGramm); // 그리고 자식 class에선 부모 class에서 필요로하는 인자도 받아와서 부모 class의 생성자를 호출할 때 넣어주어야 한다.
+    }
     private steamMilk() {
       console.log('steaming some milk...');
     }
@@ -82,7 +91,7 @@
   const coffee = coffeeMachine.makeCoffee(2);
   console.log(coffee);
 
-  const coffeeMachine2: CoffeeMaker = new CaffeLatteeMachine(32);
+  const coffeeMachine2: CoffeeMaker = new CaffeLatteeMachine(32, 'V1');
   const coffee2 = coffeeMachine2.makeCoffee(2);
   console.log(coffee2);
 }
