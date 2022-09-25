@@ -7,7 +7,7 @@
    */
   type CoffeeCup = {
     shots: number;
-    hasMilk: boolean;
+    hasMilk?: boolean;
     hasSugar?: boolean;
   };
 
@@ -15,7 +15,10 @@
     makeCoffee(shots: number): CoffeeCup;
   }
 
-  class CoffeeMachine implements CoffeeMaker {
+  /**
+   * 아래와 같이 abstract라는 키워드를 붙이면 CoffeeMachine class는 자체적으로 instance를 만들 수는 없음.
+   */
+  abstract class CoffeeMachine implements CoffeeMaker {
     private static BEANS_GRAMM_PER_SHOT: number = 7;
     private totalCoffeeBeansGramm: number = 0;
 
@@ -23,9 +26,14 @@
       this.totalCoffeeBeansGramm = coffeeBeansGramm;
     }
 
-    static makeMachine(coffeeBeansGramm: number): CoffeeMachine {
-      return new CoffeeMachine(coffeeBeansGramm);
-    }
+    // static makeMachine(coffeeBeansGramm: number): CoffeeMachine {
+    //   return new CoffeeMachine(coffeeBeansGramm);
+    //   /**
+    //    * 아래와 같이 abstract라는 키워드를 붙이면 CoffeeMachine class는 자체적으로 instance를 만들 수는 없음.
+
+    //   Cannot create an instance of an abstract class.ts(2511)
+    //    */
+    // }
 
     fullCoffeeBeansPerShots(coffeeShots: number): void {
       if (coffeeShots < 0) {
@@ -50,13 +58,14 @@
       console.log('heating up....');
     }
 
-    private extractCoffee(shots: number): CoffeeCup {
-      console.log(`pulling ${shots} shots...`);
-      return {
-        shots,
-        hasMilk: false,
-      };
-    }
+    protected abstract extractCoffee(shots: number): CoffeeCup;
+    /**
+     * 그리고 자식 class에서 조금씩 구현이 달라지는건
+     * - 자식 class에서 접근이 가능해야하므로 protected,
+     * - 추상화해서 구체적인 구현은 자식 class에서 해주도록 할 거니까 abstract
+     * 를 붙여주고
+     * - 여기선 구체적인 구현을 하지 않고 비워둔다.
+     */
 
     makeCoffee(shots: number): CoffeeCup {
       this.grindBeans(shots);
@@ -83,41 +92,31 @@
       console.log('steaming some milk...');
     }
 
-    makeCoffee(shots: number): CoffeeCup {
-      const coffee = super.makeCoffee(shots);
+    protected extractCoffee(shots: number): CoffeeCup {
       this.steamMilk();
       return {
-        ...coffee,
+        shots,
         hasMilk: true,
       };
     }
   }
 
   class SweetCoffeeMachine extends CoffeeMachine {
-    makeCoffee(shots: number): CoffeeCup {
-      const coffee = super.makeCoffee(shots);
-
+    protected extractCoffee(shots: number): CoffeeCup {
       return {
-        ...coffee,
+        shots,
         hasSugar: true,
       };
     }
   }
-
-  const coffeeMachine: CoffeeMachine = new CoffeeMachine(32);
-  coffeeMachine.fullCoffeeBeansPerShots(3);
-  const coffee = coffeeMachine.makeCoffee(2);
-  console.log(coffee);
 
   const coffeeMachine2: CoffeeMaker = new CaffeLatteeMachine(32, 'V1');
   const coffee2 = coffeeMachine2.makeCoffee(2);
   console.log(coffee2);
 
   const machines: CoffeeMaker[] = [
-    new CoffeeMachine(16),
     new CaffeLatteeMachine(16, 'V1'),
     new SweetCoffeeMachine(16),
-    new CoffeeMachine(16),
     new CaffeLatteeMachine(16, 'V1'),
     new SweetCoffeeMachine(16),
   ];
