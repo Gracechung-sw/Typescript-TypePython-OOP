@@ -68,6 +68,12 @@
     }
   }
 
+  class NoMilk implements MilkFother {
+    makeMilk(cup: CoffeeCup): CoffeeCup {
+      return cup;
+    }
+  }
+
   // 설탕 제조기
   class AutomaticSugarMixer implements SugarMixer {
     private getSugar(): boolean {
@@ -99,6 +105,12 @@
     }
   }
 
+  class NoSugar implements SugarMixer {
+    addSugar(cup: CoffeeCup): CoffeeCup {
+      return cup;
+    }
+  }
+
   /**
    * 필요한 기능들을 외부에서 주입받아서 사용해보자! (Dependency Injection)
    */
@@ -106,12 +118,12 @@
     private static BEANS_GRAMM_PER_SHOT: number = 7;
     private totalCoffeeBeansGramm: number = 0;
 
-    constructor(coffeeBeansGramm: number) {
+    constructor(
+      coffeeBeansGramm: number,
+      private milk: MilkFother,
+      private sugar: SugarMixer
+    ) {
       this.totalCoffeeBeansGramm = coffeeBeansGramm;
-    }
-
-    static makeMachine(coffeeBeansGramm: number): CoffeeMachine {
-      return new CoffeeMachine(coffeeBeansGramm);
     }
 
     fullCoffeeBeansPerShots(coffeeShots: number): void {
@@ -148,55 +160,13 @@
     makeCoffee(shots: number): CoffeeCup {
       this.grindBeans(shots);
       this.preheat();
-      return this.extractCoffee(shots);
+      const coffee = this.extractCoffee(shots);
+      const sugarAdded = this.sugar.addSugar(coffee);
+      return this.milk.makeMilk(coffee);
     }
 
     cleanMachine(): void {
       console.log('cleaning the machine...');
-    }
-  }
-
-  class CaffeLatteeMachine extends CoffeeMachine {
-    constructor(
-      coffeeBeansGramm: number,
-      public readonly serialNumber: string,
-      private milkFother: MilkFother
-    ) {
-      // Constructors for derived classes must contain a 'super' call.ts(2377)
-      // 즉 자식 class에 constructor를 재정의 해주려면 부모 class의 생성자를 호출해줘야 한다 (super())
-
-      super(coffeeBeansGramm); // 그리고 자식 class에선 부모 class에서 필요로하는 인자도 받아와서 부모 class의 생성자를 호출할 때 넣어주어야 한다.
-    }
-
-    makeCoffee(shots: number): CoffeeCup {
-      const coffee = super.makeCoffee(shots);
-      return this.milkFother.makeMilk(coffee);
-    }
-  }
-
-  class SweetCoffeeMachine extends CoffeeMachine {
-    constructor(private shots: number, private sugar: SugarMixer) {
-      super(shots);
-    }
-
-    makeCoffee(shots: number): CoffeeCup {
-      const coffee = super.makeCoffee(shots);
-      return this.sugar.addSugar(coffee);
-    }
-  }
-
-  class SweetCaffeeLatteMachine extends CoffeeMachine {
-    constructor(
-      private shots: number,
-      private milk: MilkFother,
-      private sugar: SugarMixer
-    ) {
-      super(shots);
-    }
-
-    makeCoffee(shots: number): CoffeeCup {
-      const coffee = super.makeCoffee(shots);
-      return this.milk.makeMilk(this.sugar.addSugar(coffee));
     }
   }
 
@@ -215,16 +185,18 @@
   const cheapMilkSteamer = new CheapMilkSteamer();
   const fancyMilkSteamer = new FancyMilkSteamer();
   const coldMilkSteamer = new ColdMilkSteamer();
+  const noMilk = new NoMilk();
 
   const automaticSugarMixer = new AutomaticSugarMixer();
   const candySugarMixer = new CandySugarMixer();
+  const noSugar = new NoSugar();
 
-  const sweetCandyMachine = new SweetCoffeeMachine(12, candySugarMixer);
-  const sweetMachine = new SweetCoffeeMachine(12, automaticSugarMixer);
-  const latteMachine = new CaffeLatteeMachine(12, 'v1', cheapMilkSteamer);
-  const fancyLatteMachine = new CaffeLatteeMachine(12, 'v1', fancyMilkSteamer);
-  const coldLatteMachine = new CaffeLatteeMachine(12, 'v1', coldMilkSteamer);
-  const sweetLatteMachine = new SweetCaffeeLatteMachine(
+  const sweetCandyMachine = new CoffeeMachine(12, noMilk, candySugarMixer);
+  const sweetMachine = new CoffeeMachine(12, noMilk, automaticSugarMixer);
+  const latteMachine = new CoffeeMachine(12, cheapMilkSteamer, noSugar);
+  const fancyLatteMachine = new CoffeeMachine(12, fancyMilkSteamer, noSugar);
+  const coldLatteMachine = new CoffeeMachine(12, coldMilkSteamer, noSugar);
+  const sweetLatteMachine = new CoffeeMachine(
     12,
     fancyMilkSteamer,
     candySugarMixer
