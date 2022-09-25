@@ -1,8 +1,8 @@
 {
   // 이런 경우 getter, setter 사용이 필요!
   class User {
-    firstName: string;
-    lastName: string;
+    private firstName: string;
+    private lastName: string;
 
     constructor(firstName: string, lastName: string) {
       this.firstName = firstName;
@@ -16,7 +16,4 @@
 
   const user = new User('Steve', 'Jobs');
   console.log(user.fullName); // Steve Jobs
-
-  user.firstName = 'Grace';
-  console.log(user.fullName); // Grace Jobs
 }
