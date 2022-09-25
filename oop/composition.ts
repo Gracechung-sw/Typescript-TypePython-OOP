@@ -20,6 +20,39 @@
     makeCoffee(shots: number): CoffeeCup;
   }
 
+  // 싸구려 우유 거품기
+  class CheapMilSteamer {
+    private steamMilk(): void {
+      console.log('steaming some milk... ');
+    }
+    makeMilk(cup: CoffeeCup): CoffeeCup {
+      this.steamMilk();
+      return {
+        ...cup,
+        hasMilk: true,
+      };
+    }
+  }
+
+  // 설탕 제조기
+  class AutomaticSugarMixer {
+    private getSugar(): boolean {
+      console.log('Getting some sugar from jar');
+      return true;
+    }
+
+    addSugar(cup: CoffeeCup): CoffeeCup {
+      const sugar = this.getSugar();
+      return {
+        ...cup,
+        hasSugar: sugar,
+      };
+    }
+  }
+
+  /**
+   * 필요한 기능들을 외부에서 주입받아서 사용해보자! (Dependency Injection)
+   */
   class CoffeeMachine implements CoffeeMaker {
     private static BEANS_GRAMM_PER_SHOT: number = 7;
     private totalCoffeeBeansGramm: number = 0;
@@ -77,58 +110,56 @@
   class CaffeLatteeMachine extends CoffeeMachine {
     constructor(
       coffeeBeansGramm: number,
-      public readonly serialNumber: string
+      public readonly serialNumber: string,
+      private milkFother: CheapMilSteamer
     ) {
       // Constructors for derived classes must contain a 'super' call.ts(2377)
       // 즉 자식 class에 constructor를 재정의 해주려면 부모 class의 생성자를 호출해줘야 한다 (super())
 
       super(coffeeBeansGramm); // 그리고 자식 class에선 부모 class에서 필요로하는 인자도 받아와서 부모 class의 생성자를 호출할 때 넣어주어야 한다.
     }
-    private steamMilk() {
-      console.log('steaming some milk...');
-    }
 
     makeCoffee(shots: number): CoffeeCup {
       const coffee = super.makeCoffee(shots);
-      this.steamMilk();
-      return {
-        ...coffee,
-        hasMilk: true,
-      };
+      return this.milkFother.makeMilk(coffee);
     }
   }
 
   class SweetCoffeeMachine extends CoffeeMachine {
+    constructor(private shots: number, private sugar: AutomaticSugarMixer) {
+      super(shots);
+    }
+
     makeCoffee(shots: number): CoffeeCup {
       const coffee = super.makeCoffee(shots);
-
-      return {
-        ...coffee,
-        hasSugar: true,
-      };
+      return this.sugar.addSugar(coffee);
     }
   }
 
-  const coffeeMachine: CoffeeMachine = new CoffeeMachine(32);
-  coffeeMachine.fullCoffeeBeansPerShots(3);
-  const coffee = coffeeMachine.makeCoffee(2);
-  console.log(coffee);
+  class SweetCaffeeLatteMachine extends CoffeeMachine {
+    constructor(
+      private shots: number,
+      private milk: CheapMilSteamer,
+      private sugar: AutomaticSugarMixer
+    ) {
+      super(shots);
+    }
 
-  const coffeeMachine2: CoffeeMaker = new CaffeLatteeMachine(32, 'V1');
-  const coffee2 = coffeeMachine2.makeCoffee(2);
-  console.log(coffee2);
+    makeCoffee(shots: number): CoffeeCup {
+      const coffee = super.makeCoffee(shots);
+      return this.milk.makeMilk(this.sugar.addSugar(coffee));
+    }
+  }
 
-  const machines: CoffeeMaker[] = [
-    new CoffeeMachine(16),
-    new CaffeLatteeMachine(16, 'V1'),
-    new SweetCoffeeMachine(16),
-    new CoffeeMachine(16),
-    new CaffeLatteeMachine(16, 'V1'),
-    new SweetCoffeeMachine(16),
-  ];
-
-  machines.forEach((machine) => {
-    console.log('----------------------');
-    machine.makeCoffee(1);
-  });
+  /**
+   * Refactoring point
+   *
+   * 이렇게 composition의 강력한 기능을 사용해보았지만 여전히 문제가 있다.
+   * CaffeLatteeMachine, SweetCoffeeMachine, SweetCaffeeLatteMachine이
+   * CheapMilSteamer, AutomaticSugarMixer에 강력한 의존관계가 있다는 것이다.
+   *
+   * 다른 milkSteamer, sugarMixer를 사용하고 싶다면 하나하나 다 바꿔줘야한다.
+   *
+   * 이런 문제를 더 강력한 interface의 사용으로 해결해보자!
+   */
 }
