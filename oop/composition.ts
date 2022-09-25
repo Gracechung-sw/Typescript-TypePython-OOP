@@ -16,12 +16,46 @@
     hasSugar?: boolean;
   };
 
+  interface MilkFother {
+    makeMilk(cup: CoffeeCup): CoffeeCup;
+  }
+
+  interface SugarMixer {
+    addSugar(cup: CoffeeCup): CoffeeCup;
+  }
+
   interface CoffeeMaker {
     makeCoffee(shots: number): CoffeeCup;
   }
 
   // 싸구려 우유 거품기
-  class CheapMilSteamer {
+  class CheapMilkSteamer implements MilkFother {
+    private steamMilk(): void {
+      console.log('steaming some milk... ');
+    }
+    makeMilk(cup: CoffeeCup): CoffeeCup {
+      this.steamMilk();
+      return {
+        ...cup,
+        hasMilk: true,
+      };
+    }
+  }
+
+  class FancyMilkSteamer implements MilkFother {
+    private steamMilk(): void {
+      console.log('steaming some milk... ');
+    }
+    makeMilk(cup: CoffeeCup): CoffeeCup {
+      this.steamMilk();
+      return {
+        ...cup,
+        hasMilk: true,
+      };
+    }
+  }
+
+  class ColdMilkSteamer implements MilkFother {
     private steamMilk(): void {
       console.log('steaming some milk... ');
     }
@@ -35,7 +69,22 @@
   }
 
   // 설탕 제조기
-  class AutomaticSugarMixer {
+  class AutomaticSugarMixer implements SugarMixer {
+    private getSugar(): boolean {
+      console.log('Getting some sugar from jar');
+      return true;
+    }
+
+    addSugar(cup: CoffeeCup): CoffeeCup {
+      const sugar = this.getSugar();
+      return {
+        ...cup,
+        hasSugar: sugar,
+      };
+    }
+  }
+
+  class CandySugarMixer implements SugarMixer {
     private getSugar(): boolean {
       console.log('Getting some sugar from jar');
       return true;
@@ -111,7 +160,7 @@
     constructor(
       coffeeBeansGramm: number,
       public readonly serialNumber: string,
-      private milkFother: CheapMilSteamer
+      private milkFother: MilkFother
     ) {
       // Constructors for derived classes must contain a 'super' call.ts(2377)
       // 즉 자식 class에 constructor를 재정의 해주려면 부모 class의 생성자를 호출해줘야 한다 (super())
@@ -126,7 +175,7 @@
   }
 
   class SweetCoffeeMachine extends CoffeeMachine {
-    constructor(private shots: number, private sugar: AutomaticSugarMixer) {
+    constructor(private shots: number, private sugar: SugarMixer) {
       super(shots);
     }
 
@@ -139,8 +188,8 @@
   class SweetCaffeeLatteMachine extends CoffeeMachine {
     constructor(
       private shots: number,
-      private milk: CheapMilSteamer,
-      private sugar: AutomaticSugarMixer
+      private milk: MilkFother,
+      private sugar: SugarMixer
     ) {
       super(shots);
     }
@@ -156,10 +205,35 @@
    *
    * 이렇게 composition의 강력한 기능을 사용해보았지만 여전히 문제가 있다.
    * CaffeLatteeMachine, SweetCoffeeMachine, SweetCaffeeLatteMachine이
-   * CheapMilSteamer, AutomaticSugarMixer에 강력한 의존관계가 있다는 것이다.
+   * CheapMilkSteamer, AutomaticSugarMixer에 강력한 의존관계가 있다는 것이다.
    *
    * 다른 milkSteamer, sugarMixer를 사용하고 싶다면 하나하나 다 바꿔줘야한다.
    *
-   * 이런 문제를 더 강력한 interface의 사용으로 해결해보자!
+   * 이런 문제를 더 강력한 interface의 사용으로 해결해보자! 코드 재사용의 극대화!!!!
+   */
+
+  const cheapMilkSteamer = new CheapMilkSteamer();
+  const fancyMilkSteamer = new FancyMilkSteamer();
+  const coldMilkSteamer = new ColdMilkSteamer();
+
+  const automaticSugarMixer = new AutomaticSugarMixer();
+  const candySugarMixer = new CandySugarMixer();
+
+  const sweetCandyMachine = new SweetCoffeeMachine(12, candySugarMixer);
+  const sweetMachine = new SweetCoffeeMachine(12, automaticSugarMixer);
+  const latteMachine = new CaffeLatteeMachine(12, 'v1', cheapMilkSteamer);
+  const fancyLatteMachine = new CaffeLatteeMachine(12, 'v1', fancyMilkSteamer);
+  const coldLatteMachine = new CaffeLatteeMachine(12, 'v1', coldMilkSteamer);
+  const sweetLatteMachine = new SweetCaffeeLatteMachine(
+    12,
+    fancyMilkSteamer,
+    candySugarMixer
+  );
+
+  /**
+   * 그런데 이렇게 부품을 끼웠다 뺐다할 수 있다면 굳이 CoffeeMachine, SweetCoffeeMachine, CaffeLatteeMachine, SweetCaffeeLatteMachine
+   * 가 다 구현되어 있어야 하나?
+   * CoffeeMachine 안에서 다 가능할 거 같은데? 맞다!
+   *
    */
 }
