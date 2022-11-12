@@ -48,4 +48,26 @@ class Siri(Robot):
 
 siri = Siri('grace', 'code1', 17)
 
-132,610 + 132,610 + 3,610
+print(Siri.mro()) # [<class '__main__.Siri'>, <class '__main__.Robot'>, <class 'object'>]
+# mro: 상속 관계를 보여줌. 
+
+# 여기서 알 수 있듯이 class는 object를 상속 받은 것임. 
+print(object) # <class 'object'>
+print(dir(object)) # ['__class__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__']
+print(object.__name__) # object
+
+
+# 다중 상송 - 가능은 하지만 anti pattern!!
+class A:
+    pass
+
+class B:
+    pass
+
+class C:
+    pass
+
+class D(A, B, C):
+    pass
+
+print(D.mro()) # [<class '__main__.D'>, <class '__main__.A'>, <class '__main__.B'>, <class '__main__.C'>, <class 'object'>]
